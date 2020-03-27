@@ -1,0 +1,342 @@
+<html>
+
+    <head>
+        <meta charset="utf-8">
+            <tittle>Rocha's Game </tittle>
+
+            <style>
+
+                canvas{
+
+                    position: absolute;
+                    top: 0px;
+                    bottom: 0px;
+                    left: 0px;
+                    right: 0px;
+                    margin: auto;
+                }
+            </style>
+
+    </head>
+
+    <body>
+        <button id='play' name='play' onclick='tocar()'>Tocar música</button>
+        <label>Volume: </label>
+        <button onclick="volumeup()">+</button>
+        <button onclick="volumedown()">-</button>
+        <br> <label>SETA PARA CIMA: voa</label>
+            <script>
+                var song = new Audio("lazysong.mp3");
+
+                function tocar(){
+
+                    song.play();
+
+                }
+
+                function volumeup(){
+                    song.volume += 0.1
+
+                }
+
+                function volumedown(){
+
+                    song.volume -= 0.1
+
+                }
+
+
+                let canvas, context, HEIGHT, WIDTH, frames = 0, indexColor = 0;
+                const gravity = 6;
+                let speed = 1.01;
+                var img = new Image();
+                img.src = 'pedra.png';
+
+                var hamb = new Image();
+                hamb.src = 'burgue.png';
+
+               
+                
+
+                var jumpSong = new Audio("jump.mp3");
+
+                let ground = {
+                    y : 440,
+                    HEIGHT: 60,
+                    color : "#8B4513",
+    
+                    draw: function(){
+
+                        context.fillStyle = this.color;
+                        context.fillRect(0, this.y, WIDTH, this.HEIGHT);
+                    }
+
+
+                };
+
+                let staminaBar = {
+                    HEIGHT: 10,
+                    WIDTH: 140,
+                    x:30,
+                    y:10,
+                    stamina : true,
+                    color: "#FFFF00", //amarelo
+
+                    verify: function(){
+
+                        if (this.WIDTH <= 0 && rocha.jumpBool == true){
+                            rocha.jumpBool = false;
+                            this.stamina = false;
+                            this.completeStamina();
+                            
+                        }else if (this.WIDTH < 140 ){
+                            
+                            this.completeStamina();
+                        }
+
+                        if (rocha.jumpBool){
+                            if (this.WIDTH <=0) return ;
+                            this.jumping();
+
+                        } 
+                        if (this.WIDTH > 60) this.stamina = true;
+                        
+
+                    
+                    },
+                    
+                    completeStamina: function(){
+                        if (this.WIDTH < 140 && this.stamina == false){
+                            this.WIDTH += 1;
+                            console.log("Completando estamina! 2");
+                           
+                        }else if(this.WIDTH < 140){
+
+                            this.WIDTH += 1;
+                            console.log("Completando estamina! 2");
+
+                        }
+
+                    } ,
+                    jumping: function(){
+
+                       if (this.WIDTH > 0)   this.WIDTH -= 1.5;
+                      
+
+                    },
+                    draw: function(){
+
+                        context.fillStyle = this.color;
+                        context.fillRect(this.x, this.y, this.WIDTH, this.HEIGHT);
+
+                    },
+
+
+
+
+                };
+
+                let burgue = {
+                    _burgues: [],
+                    timeToCreate: 0,
+                
+                create: function(){
+
+                    this._burgues.push({
+                        x: WIDTH,
+                        y: 10 + Math.floor(380 * Math.random()),
+                        img: hamb,
+
+
+
+                    })
+                    this.timeToCreate = 330;
+                    
+
+                },
+                draw: function(){
+                    for(let i = 0, tam = this._burgues.length; i < tam; i++){
+                        let object = this._burgues[i];
+
+                        context.drawImage(object.img, object.x, object.y, 90,70);
+
+
+                    }
+                    
+
+                },
+                update: function(){
+                    if (this.timeToCreate == 0) {
+                        this.create();
+                        
+                    } else this.timeToCreate--;
+                    let colid = false;
+
+                    for(let i = 0, tam = this._burgues.length; i < tam; i++){
+                        colid = false;
+                        let object = this._burgues[i];
+                        object.x -= 3 * speed;
+
+                        if((object.x < rocha.x + 50 && object.x > rocha.x - 50) && (object.y < rocha.y+40 && object.y > rocha.y-40)){
+                            console.log("colidiu");
+                            colid = true;
+                            
+                            
+                        }
+                        if(object.x <= -100 || colid == true){
+
+                            this._burgues.splice(i,1);
+                            tam--;
+                            i--;
+                        }
+
+                        
+
+                    }
+                    
+                    
+
+
+                },
+
+                };
+
+                let rocha = {
+                    x: 70,
+                    y: 90,
+                    HEIGHT: 100,
+                    WIDTH: 100,
+                    speed: 0,
+                   
+                    jumpBool: false,
+                   
+
+                    verify: function(){
+                        if (this.y < 400 && this.jumpBool == false){
+
+                            this.y = this.y + gravity;
+
+                        }
+                        
+                    },
+                    jump: function(){
+                        if (staminaBar.stamina){
+        
+                            this.jumpBool = true;
+                            if ( this.y > 0){
+                            jumpSong.play();
+                            this.y -= 15;
+                            staminaBar.jumping();
+
+                        }
+                        
+                        
+                         
+                        
+                        }
+                        
+                    },
+            
+                    draw: function(){
+                        
+                        //context.fillRect(this.x, this.y, this.WIDTH, this.HEIGHT);
+                        context.drawImage(img, this.x, this.y, this.HEIGHT, this.WIDTH);
+
+
+                    },
+
+                
+
+                };
+
+                function draw(){
+                    context.fillStyle = '#50beff';
+                    context.fillRect(0, 0, WIDTH, HEIGHT);
+                    ground.draw(); //desenha o chao
+                    rocha.draw();
+                    burgue.draw();
+                    burgue.update();
+                    staminaBar.draw();
+                    
+
+
+                }
+
+                function verifyGravity(){
+
+                    
+
+                }
+                
+                function update(){
+                    frames++;
+                    speed+=0.00001;
+                    staminaBar.verify();
+                    rocha.verify();
+
+
+
+                }
+
+                function run(){
+                    update();
+                    draw();
+                     
+                    window.requestAnimationFrame(run);
+
+
+
+                }
+
+                function keyPressed(event){
+                    
+                    if (event.key == 'ArrowUp'){
+                       
+                       rocha.jump();
+                       return;
+                       
+
+                    }
+                          
+                    
+                    rocha.jumpBool = false;
+                    
+                  
+                   
+
+                }
+               
+                function main(){
+                    HEIGHT = window.innerHeight;
+                    WIDTH = window.innerWidth - 2;
+
+                    if (HEIGHT >= 500){
+                        
+                        HEIGHT = 500;
+                        
+
+                    }
+                    canvas = document.createElement("canvas");
+
+                    canvas.width = WIDTH;
+                    canvas.height = HEIGHT;
+                    canvas.style.border = '1px solid #000';
+
+                    context = canvas.getContext("2d");
+                    document.body.appendChild(canvas);
+                    document.addEventListener("keydown", keyPressed, true);
+
+                       
+                    
+                    
+                    
+
+                    run();
+                }
+
+                main();
+            </script>
+
+    </body>
+
+</html>
